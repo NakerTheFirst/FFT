@@ -8,14 +8,14 @@ class FFT:
         self.__data_noisy = []
         self.__data_2d = []
         self.__dft_frequencies = []
-        self.__modules = []
+        self.__amplitudes = []
         self.__fft_frequencies = []
 
     def run(self):
         self.__scrape_data()
         self.__dft_frequencies = self.__dft(self.__data)
         self.__fft_frequencies = self.__fft(self.__data)
-        self.__calc_modules(self.__data, self.__fft_frequencies)
+        self.__calc_amplitudes(self.__data)
 
     def __scrape_data(self):
         files = ["dane_02.in", "dane_02_a.in", "dane2_02.in"]
@@ -63,17 +63,17 @@ class FFT:
     def __count_operations(self):
         pass
 
-    def __calc_modules(self, data, frequencies):
+    def __calc_amplitudes(self, data):
         for x in range(len(data)):
-            module = np.abs(frequencies[x])
-            self.__modules.append(module)
+            amplitude = np.abs(self.__fft_frequencies[x])
+            self.__amplitudes.append(amplitude)
 
-    def plot_frequencies(self, modules):
-        sample_num = range(len(modules))
-        plt.plot(sample_num, self.__modules)
-        plt.title("FFT frequencies")
+    def plot_amplitudes(self):
+        sample_num = range(len(self.__amplitudes))
+        plt.plot(sample_num, self.__amplitudes)
+        plt.title("FFT Amplitudes")
         plt.xlabel("Sample number")
-        plt.ylabel("Frequencies")
+        plt.ylabel("Amplitudes")
         plt.show()
 
     def get_dft_frequencies(self):
@@ -82,15 +82,15 @@ class FFT:
     def get_fft_frequencies(self):
         return self.__fft_frequencies
 
-    def get_modules(self):
-        return self.__modules
+    def get_amplitudes(self):
+        return self.__amplitudes
 
 
 def main():
 
     f = FFT()
     f.run()
-    f.plot_frequencies(f.get_modules())
+    f.plot_amplitudes()
 
     return 0
 
