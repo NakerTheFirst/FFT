@@ -13,6 +13,9 @@ class FFT:
         data_dft = self.__dft(self.__data)
         print(f"data_dft: {data_dft}")
 
+        data_fft = self.__fft(self.__data)
+        print(f"data_dft: {data_fft}")
+
     def __scrape_data(self):
         files = ["dane_02.in", "dane_02_a.in", "dane2_02.in"]
         lists = [self.__data, self.__data_noisy, self.__data_2d]
@@ -33,7 +36,7 @@ class FFT:
                 except ValueError:
                     print(f"Could not convert {line} to float")
 
-    def __dft(self, x):
+    def __dft (self, x):
         N = len(x)
         X = np.zeros(N, dtype=complex)
 
@@ -42,6 +45,19 @@ class FFT:
                 X[k] += x[n] * np.exp(-2j * np.pi * k * n / N)
 
         return X
+
+    def __fft(self, x):
+        N = len(x)
+        if N <= 1:
+            return x
+
+        # Even/odd element splitting
+        even = self.__fft(x[0::2])
+        odd = self.__fft(x[1::2])
+
+        # Combine
+        T = [np.exp(-2j * np.pi * k / N) * odd[k] for k in range(N // 2)]
+        return [even[k] + T[k] for k in range(N // 2)] + [even[k] - T[k] for k in range(N // 2)]
 
     def __count_operations(self):
         pass
@@ -60,10 +76,6 @@ def main():
 
     f = FFT()
     f.run()
-
-    print(f"Data: {f.get_data()}")
-    print(f"Data noise: {f.get_data_noisy()}")
-    print(f"Data 2D: {f.get_data_2d()}")
 
     return 0
 
