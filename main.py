@@ -1,3 +1,4 @@
+from matplotlib import pyplot as plt
 import numpy as np
 
 
@@ -6,15 +7,15 @@ class FFT:
         self.__data = []
         self.__data_noisy = []
         self.__data_2d = []
+        self.__dft_frequencies = []
+        self.__modules = []
+        self.__fft_frequencies = []
 
     def run(self):
         self.__scrape_data()
-
-        data_dft = self.__dft(self.__data)
-        print(f"data_dft: {data_dft}")
-
-        data_fft = self.__fft(self.__data)
-        print(f"data_dft: {data_fft}")
+        self.__dft_frequencies = self.__dft(self.__data)
+        self.__fft_frequencies = self.__fft(self.__data)
+        self.__calc_modules(self.__data, self.__fft_frequencies)
 
     def __scrape_data(self):
         files = ["dane_02.in", "dane_02_a.in", "dane2_02.in"]
@@ -62,20 +63,34 @@ class FFT:
     def __count_operations(self):
         pass
 
-    def get_data(self):
-        return self.__data
+    def __calc_modules(self, data, frequencies):
+        for x in range(len(data)):
+            module = np.abs(frequencies[x])
+            self.__modules.append(module)
 
-    def get_data_noisy(self):
-        return self.__data_noisy
+    def plot_frequencies(self, modules):
+        sample_num = range(len(modules))
+        plt.plot(sample_num, self.__modules)
+        plt.title("FFT frequencies")
+        plt.xlabel("Sample number")
+        plt.ylabel("Frequencies")
+        plt.show()
 
-    def get_data_2d(self):
-        return self.__data_2d
+    def get_dft_frequencies(self):
+        return self.__dft_frequencies
+
+    def get_fft_frequencies(self):
+        return self.__fft_frequencies
+
+    def get_modules(self):
+        return self.__modules
 
 
 def main():
 
     f = FFT()
     f.run()
+    f.plot_frequencies(f.get_modules())
 
     return 0
 
