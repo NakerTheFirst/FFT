@@ -11,12 +11,16 @@ class FFT:
         self.__dft_frequencies = []
         self.__amplitudes = []
         self.__fft_frequencies = []
+        self.__dft_op_counter = 0
+        self.__fft_op_counter = 0
 
     def run(self):
         self.__scrape_data()
         self.__dft_frequencies = self.__dft(self.__data)
         self.__fft_frequencies = self.__fft(self.__data)
-        self.__calc_amplitudes(self.__data)
+        self.__calc_amplitudes()
+        print(f"DFT operations: {self.__dft_op_counter}")
+        print(f"FFT operations: {self.__fft_op_counter}")
 
     def __scrape_data(self):
         files = ["dane_02.in", "dane_02_a.in", "dane2_02.in"]
@@ -38,13 +42,14 @@ class FFT:
                 except ValueError:
                     print(f"Could not convert {line} to float")
 
-    def __dft (self, x):
+    def __dft(self, x):
         N = len(x)
         X = np.zeros(N, dtype=complex)
 
         for k in range(N):
             for n in range(N):
                 X[k] += x[n] * np.exp(-2j * np.pi * k * n / N)
+                self.__dft_op_counter += 1
 
         return X
 
@@ -58,14 +63,19 @@ class FFT:
         odd = self.__fft(x[1::2])
 
         # Combine
-        T = [np.exp(-2j * np.pi * k / N) * odd[k] for k in range(N // 2)]
-        return [even[k] + T[k] for k in range(N // 2)] + [even[k] - T[k] for k in range(N // 2)]
+        combined = [0] * N
+        for k in range(N // 2):
+            twiddle_factor = np.exp(-2j * np.pi * k / N) * odd[k]
+            combined[k] = even[k] + twiddle_factor
+            combined[k + N // 2] = even[k] - twiddle_factor
 
-    def __count_operations(self):
-        pass
+            # Count 2 operations (1 multiplication, 1 addition)
+            self.__fft_op_counter += 2
 
-    def __calc_amplitudes(self, data):
-        for x in range(len(data)):
+        return combined
+
+    def __calc_amplitudes(self):
+        for x in range(len(self.__data)):
             amplitude = np.abs(self.__fft_frequencies[x])
             self.__amplitudes.append(amplitude)
 
@@ -109,9 +119,9 @@ def main():
 
     f = FFT()
     f.run()
+    f.plot_signal()
     f.plot_amplitudes()
     # f.plot_magnitude_spectrum()
-    f.plot_signal()
 
     return 0
 
