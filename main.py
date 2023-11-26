@@ -18,8 +18,8 @@ class FFT:
         self.__scrape_data()
 
         # Perform the transformations
-        self.__dft_frequencies = self.__dft(self.__data)
-        self.__fft_frequencies = self.__fft(self.__data)
+        self.__dft_frequencies = self.__threshold_list(self.__dft(self.__data))
+        self.__fft_frequencies = self.__threshold_list(self.__fft(self.__data))
         self.__calc_amplitudes()
 
         print(f"DFT operations: {self.__dft_op_counter}")
@@ -125,6 +125,22 @@ class FFT:
         for x in range(len(self.__data)):
             amplitude = np.abs(self.__fft_frequencies[x])
             self.__amplitudes.append(amplitude)
+
+    def __threshold_list(self, input_list, epsilon=0.0005) -> list:
+        """If list values are lower than epsilon, set them to 0"""
+        def threshold_value(value):
+            return 0 if abs(value) < epsilon else value
+
+        # 1D list
+        if all(isinstance(i, (int, float, complex)) for i in input_list):
+            return [threshold_value(x) for x in input_list]
+
+        # 2D list
+        elif all(isinstance(row, list) for row in input_list):
+            return [[threshold_value(x) for x in row] for row in input_list]
+
+        else:
+            raise ValueError("Input must be a 1D or 2D list of numbers")
 
     def plot_amplitudes(self):
         sample_num = range(len(self.__amplitudes))
