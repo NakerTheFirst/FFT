@@ -1,10 +1,10 @@
 from matplotlib import pyplot as plt
 import numpy as np
+import sys
 
 
 class FFT:
     def __init__(self):
-        # TODO: Delete the other lists after refactoring the io
         self.__data = []
         self.__data_noisy = []
         self.__data_2d = []
@@ -15,12 +15,18 @@ class FFT:
         self.__fft_op_counter = 0
 
     def run(self):
+        # Remains here for the use of testing
         self.__scrape_data()
+
+        # TODO: Uncomment before handing in the final programme
+        # self.__scrape_data_final()
 
         # Perform the transformations
         self.__dft_frequencies = self.__threshold_list(self.__dft(self.__data))
         self.__fft_frequencies = self.__threshold_list(self.__fft(self.__data))
         self.__calc_amplitudes()
+
+        print(self.__dft_frequencies)
 
         print(f"DFT operations: {self.__dft_op_counter}")
         print(f"FFT operations: {self.__fft_op_counter}")
@@ -56,6 +62,23 @@ class FFT:
                     data_list.append(float(line))
                 except ValueError:
                     print(f"Could not convert {line} to float")
+
+    def __scrape_data_final(self):
+        # Read the dimension
+        dimensionality = int(input().strip())
+
+        # Read the number of elements
+        dimensions = list(map(int, input().strip().split()))
+
+        # Initialize the data container
+        if dimensionality == 1:
+            N = dimensions[0]
+            self.__data = [float(input().strip()) for _ in range(N)]
+        elif dimensionality == 2:
+            N, M = dimensions
+            self.__data_2d = [[float(num) for num in input().strip().split()] for _ in range(N)]
+        else:
+            raise ValueError("Dimensionality must be 1 or 2")
 
     def __dft(self, x):
         N = len(x)
