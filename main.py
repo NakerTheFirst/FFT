@@ -13,14 +13,29 @@ class FFT:
         self.__fft_frequencies = []
         self.__dft_op_counter = 0
         self.__fft_op_counter = 0
+        self.__idft_op_counter = 0
+        self.__ifft_op_counter = 0
 
     def run(self):
         self.__scrape_data()
+
+        # Perform the transformations
         self.__dft_frequencies = self.__dft(self.__data)
         self.__fft_frequencies = self.__fft(self.__data)
         self.__calc_amplitudes()
+
         print(f"DFT operations: {self.__dft_op_counter}")
         print(f"FFT operations: {self.__fft_op_counter}")
+
+        # Plotting
+        self.plot_signal(self.__data)
+        self.plot_amplitudes()
+
+        # Inverse
+        signal_dft_inverse = self.__idft(self.__dft_frequencies)
+
+        # Plot inverted signals to compare to the initial ones
+        self.plot_signal(signal_dft_inverse)
 
     def __scrape_data(self):
         files = ["dane_02.in", "dane_02_a.in", "dane2_02.in"]
@@ -74,6 +89,17 @@ class FFT:
 
         return combined
 
+    def __idft(self, x):
+        N = len(x)
+        X = np.zeros(N, dtype=complex)
+
+        for n in range(N):
+            for k in range(N):
+                X[n] += x[k] * np.exp(2j * np.pi * k * n / N)
+            X[n] /= N
+
+        return X
+
     def __calc_amplitudes(self):
         for x in range(len(self.__data)):
             amplitude = np.abs(self.__fft_frequencies[x])
@@ -81,7 +107,7 @@ class FFT:
 
     def plot_amplitudes(self):
         sample_num = range(len(self.__amplitudes))
-        plt.plot(sample_num, self.__amplitudes)
+        plt.scatter(sample_num, self.__amplitudes, s=15)
         plt.title("FFT Amplitudes")
         plt.xlabel("Sample number")
         plt.ylabel("Amplitudes")
@@ -97,11 +123,11 @@ class FFT:
         plt.grid(True)
         plt.show()
 
-    def plot_signal(self):
-        plt.scatter(range(len(self.__data)), self.__data, s=15)
-        plt.title("Discrete Signal in Time Domain")
+    def plot_signal(self, signal, title="Discretised Signal in Time Domain"):
+        plt.scatter(range(len(signal)), signal, s=15)
+        plt.title(title)
         plt.xlabel("Sample number")
-        plt.ylabel("Values")
+        plt.ylabel("Value")
         plt.grid(True)
         plt.show()
 
@@ -119,8 +145,8 @@ def main():
 
     f = FFT()
     f.run()
-    f.plot_signal()
-    f.plot_amplitudes()
+    # f.plot_signal()
+    # f.plot_amplitudes()
     # f.plot_magnitude_spectrum()
 
     return 0
