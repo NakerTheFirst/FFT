@@ -13,8 +13,6 @@ class FFT:
         self.__fft_frequencies = []
         self.__dft_op_counter = 0
         self.__fft_op_counter = 0
-        self.__idft_op_counter = 0
-        self.__ifft_op_counter = 0
 
     def run(self):
         self.__scrape_data()
@@ -33,9 +31,11 @@ class FFT:
 
         # Inverse
         signal_dft_inverse = self.__idft(self.__dft_frequencies)
+        signal_fft_inverse = self.__idft(self.__fft_frequencies)
 
         # Plot inverted signals to compare to the initial ones
-        self.plot_signal(signal_dft_inverse)
+        self.plot_signal(signal_dft_inverse, "Post IDFT signal")
+        self.plot_signal(signal_fft_inverse, "Post IFFT signal")
 
     def __scrape_data(self):
         files = ["dane_02.in", "dane_02_a.in", "dane2_02.in"]
@@ -100,6 +100,27 @@ class FFT:
 
         return X
 
+    def __ifft(self, x):
+        N = len(x)
+        if N <= 1:
+            return x
+
+        # Split the signal into even and odd indexed elements
+        even = self.__ifft(x[0::2])
+        odd = self.__ifft(x[1::2])
+
+        # Combine
+        combined = [0] * N
+        for k in range(N // 2):
+            twiddle_factor = np.exp(2j * np.pi * k / N) * odd[k]
+            combined[k] = even[k] + twiddle_factor
+            combined[k + N // 2] = even[k] - twiddle_factor
+
+        # Normalize the results by the number of samples
+        combined = [elem / N for elem in combined]
+
+        return combined
+
     def __calc_amplitudes(self):
         for x in range(len(self.__data)):
             amplitude = np.abs(self.__fft_frequencies[x])
@@ -131,23 +152,11 @@ class FFT:
         plt.grid(True)
         plt.show()
 
-    def get_dft_frequencies(self):
-        return self.__dft_frequencies
-
-    def get_fft_frequencies(self):
-        return self.__fft_frequencies
-
-    def get_amplitudes(self):
-        return self.__amplitudes
-
 
 def main():
 
     f = FFT()
     f.run()
-    # f.plot_signal()
-    # f.plot_amplitudes()
-    # f.plot_magnitude_spectrum()
 
     return 0
 
