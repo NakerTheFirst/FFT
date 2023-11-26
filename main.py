@@ -4,6 +4,7 @@ import numpy as np
 
 class FFT:
     def __init__(self):
+        # TODO: Delete the other lists after refactoring the io
         self.__data = []
         self.__data_noisy = []
         self.__data_2d = []
@@ -74,6 +75,24 @@ class FFT:
         plt.title("FFT Amplitudes")
         plt.xlabel("Sample number")
         plt.ylabel("Amplitudes")
+        plt.grid(True)
+        plt.show()
+
+    # TODO: This doesn't work, unsure what to do - move on, get back later
+    def plot_magnitude_spectrum(self):
+        plt.scatter(self.__fft_frequencies, self.__amplitudes)
+        plt.title("FFT Magnitude Spectrum")
+        plt.xlabel("Frequencies")
+        plt.ylabel("Amplitudes")
+        plt.grid(True)
+        plt.show()
+
+    def plot_signal(self):
+        plt.scatter(range(len(self.__data)), self.__data, s=15)
+        plt.title("Discrete Signal in Time Domain")
+        plt.xlabel("Sample number")
+        plt.ylabel("Values")
+        plt.grid(True)
         plt.show()
 
     def get_dft_frequencies(self):
@@ -91,6 +110,8 @@ def main():
     f = FFT()
     f.run()
     f.plot_amplitudes()
+    # f.plot_magnitude_spectrum()
+    f.plot_signal()
 
     return 0
 
