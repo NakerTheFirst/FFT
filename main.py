@@ -36,16 +36,16 @@ class FFT:
         print(f"FFT operations: {self.__fft_op_counter}")
 
         # Plotting
-        self.plot_signal(self.__data)
-        self.plot_amplitudes()
+        self.__plot_signal(self.__data)
+        self.__plot_amplitudes()
 
         # Inverse
         signal_dft_inverse = self.__idft(self.__dft_frequencies)
         signal_fft_inverse = self.__idft(self.__fft_frequencies)
 
         # Plot inverted signals to compare to the initial ones
-        self.plot_signal(signal_dft_inverse, "Post IDFT signal")
-        self.plot_signal(signal_fft_inverse, "Post IFFT signal")
+        # self.__plot_signal(signal_dft_inverse, "Post IDFT signal")
+        # self.__plot_signal(signal_fft_inverse, "Post IFFT signal")
 
     def __scrape_data(self):
         files = ["dane_02.in", "dane_02_a.in", "dane2_02.in"]
@@ -182,12 +182,23 @@ class FFT:
         else:
             raise ValueError("Input must be a 1D or 2D list of numbers")
 
-    def plot_amplitudes(self):
+    # TODO: Remove all the figure titles
+    # TODO: Rename all the figure labels to Polish
+    def __plot_amplitudes(self):
         sample_num = range(len(self.__amplitudes))
+
+        plt.figure(figsize=(7.5, 5))
+
         plt.scatter(sample_num, self.__amplitudes, s=15)
         plt.title("FFT Amplitudes")
-        plt.xlabel("Sample number")
-        plt.ylabel("Amplitudes")
+        plt.xlabel("Sample number", fontsize=12)
+        plt.ylabel("Amplitudes", fontsize=12)
+        plt.xticks(fontsize=12)
+        plt.yticks(fontsize=12)
+
+        # Internal margins
+        plt.subplots_adjust(left=0.12, right=0.95, top=0.95, bottom=0.12)
+
         plt.grid(True)
         plt.show()
 
@@ -200,11 +211,19 @@ class FFT:
         plt.grid(True)
         plt.show()
 
-    def plot_signal(self, signal, title="Discretised Signal in Time Domain"):
+    def __plot_signal(self, signal, title="Discretised Signal in Time Domain"):
+        plt.figure(figsize=(7.5, 5))
+
         plt.scatter(range(len(signal)), signal, s=15)
         plt.title(title)
-        plt.xlabel("Sample number")
-        plt.ylabel("Value")
+        plt.xlabel("Sample number", fontsize=12)
+        plt.ylabel("Value", fontsize=12)
+        plt.xticks(fontsize=12)
+        plt.yticks(fontsize=12)
+
+        # Internal margins
+        plt.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.12)
+
         plt.grid(True)
         plt.show()
 
