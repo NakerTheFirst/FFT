@@ -15,6 +15,10 @@ class FFT:
         self.__fft_op_counter = 0
 
     def run(self):
+
+        # TODO: Wrap output to be saved in dane.out file in the final programme
+        # with self.__redirect_output_to_file("dane.out"):
+
         # Remains here for the use of testing
         self.__scrape_data()
 
@@ -79,6 +83,19 @@ class FFT:
             self.__data_2d = [[float(num) for num in input().strip().split()] for _ in range(N)]
         else:
             raise ValueError("Dimensionality must be 1 or 2")
+
+    def __redirect_output_to_file(self, filename):
+        class OutputRedirector:
+            def __enter__(self_):
+                self_.old_stdout = sys.stdout
+                sys.stdout = open(filename, "w")
+                return self_
+
+            def __exit__(self_, exc_type, exc_val, exc_tb):
+                sys.stdout.close()
+                sys.stdout = self_.old_stdout
+
+        return OutputRedirector()
 
     def __dft(self, x):
         N = len(x)
