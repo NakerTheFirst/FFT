@@ -25,12 +25,17 @@ class FFT:
         # TODO: Uncomment before handing in the final programme
         # self.__scrape_data_final()
 
-        # Perform the transformations
+        # Perform the transformations and round the output
         self.__dft_frequencies = self.__threshold_list(self.__dft(self.__data))
         self.__fft_frequencies = self.__threshold_list(self.__fft(self.__data))
-        self.__calc_amplitudes()
+        self.__dft_frequencies = self.__round_list_contents(self.__dft_frequencies)
+        self.__fft_frequencies = self.__round_list_contents(self.__fft_frequencies)
 
-        print(self.__dft_frequencies)
+        self.__calc_amplitudes()
+        self.__amplitudes = self.__round_list_contents(self.__amplitudes)
+
+        print(f"Post-DFT frequencies: \n{self.__dft_frequencies}")
+        print(f"Amplitudes: \n{self.__amplitudes}")
 
         print(f"DFT operations: {self.__dft_op_counter}")
         print(f"FFT operations: {self.__fft_op_counter}")
@@ -181,6 +186,10 @@ class FFT:
 
         else:
             raise ValueError("Input must be a 1D or 2D list of numbers")
+
+    def __round_list_contents(self, input_list):
+        """Rounds the contents of a list to two decimal points."""
+        return [np.round(num, 2) for num in input_list]
 
     # TODO: Remove all the figure titles
     # TODO: Rename all the figure labels to Polish
