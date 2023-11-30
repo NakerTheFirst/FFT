@@ -11,6 +11,7 @@ class FFT:
         self.__dft_frequencies = []
         self.__amplitudes = []
         self.__fft_frequencies = []
+        self.__harmonics_indexes = {}
         self.__dft_op_counter = 0
         self.__fft_op_counter = 0
 
@@ -34,11 +35,15 @@ class FFT:
         self.__calc_amplitudes()
         self.__amplitudes = self.__round_list_contents(self.__amplitudes)
 
-        print(f"Post-DFT frequencies: \n{self.__dft_frequencies}")
-        print(f"Amplitudes: \n{self.__amplitudes}")
+        # Save FFT harmonics
+        self.__extract_significant_values(self.__amplitudes)
+        print(f"Harmonics: \n{self.__harmonics_indexes}")
 
-        print(f"DFT operations: {self.__dft_op_counter}")
-        print(f"FFT operations: {self.__fft_op_counter}")
+        # print(f"Post-DFT frequencies: \n{self.__dft_frequencies}")
+        # print(f"Amplitudes: \n{self.__amplitudes}")
+
+        # print(f"DFT operations: {self.__dft_op_counter}")
+        # print(f"FFT operations: {self.__fft_op_counter}")
 
         # Plotting
         self.__plot_signal(self.__data)
@@ -170,6 +175,16 @@ class FFT:
         for x in range(len(self.__data)):
             amplitude = np.abs(self.__fft_frequencies[x])
             self.__amplitudes.append(amplitude)
+
+    # TODO: Add 2D data handling
+    def __extract_significant_values(self, data, threshold=5):
+        # If data is a 1D list
+        if all(isinstance(i, (int, float, complex, np.int32, np.float64)) for i in data):
+            for index, value in enumerate(data):
+                if abs(value) > threshold and abs(value) not in self.__harmonics_indexes.values():
+                    self.__harmonics_indexes[index] = value
+        else:
+            raise ValueError("Data must be a 1D list of numbers")
 
     def __threshold_list(self, input_list, epsilon=0.0005) -> list:
         """If list values are lower than epsilon, set them to 0"""
