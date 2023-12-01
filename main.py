@@ -12,6 +12,8 @@ class FFT:
         self.__amplitudes = []
         self.__fft_frequencies = []
         self.__harmonics_indexes = {}
+        self.__noise_values = []
+        self.__data_size = 0
         self.__dft_op_counter = 0
         self.__fft_op_counter = 0
 
@@ -22,6 +24,8 @@ class FFT:
 
         # Remains here for the use of testing
         self.__scrape_data()
+        self.__data = self.__data_noisy
+        self.__data_size = np.size(self.__data)
 
         # TODO: Uncomment before handing in the final programme
         # self.__scrape_data_final()
@@ -39,8 +43,18 @@ class FFT:
         self.__extract_significant_values(self.__amplitudes)
         print(f"Harmonics: \n{self.__harmonics_indexes}")
 
-        # print(f"Post-DFT frequencies: \n{self.__dft_frequencies}")
-        # print(f"Amplitudes: \n{self.__amplitudes}")
+        print(f"Post-DFT frequencies: \n{self.__dft_frequencies}")
+        print(f"Amplitudes: \n{self.__amplitudes}")
+
+        # Extract the noise
+        self.__noise_values = self.__extract_noise()
+
+        print(f"Noise: \n{self.__noise_values}")
+
+        x_data = int(self.__data_size/2 - len(self.__harmonics_indexes.keys()))
+        slope, intercept = np.polyfit(range(x_data), self.__noise_values, 1)
+
+        print(f"Slope: \n{slope}")
 
         # print(f"DFT operations: {self.__dft_op_counter}")
         # print(f"FFT operations: {self.__fft_op_counter}")
@@ -185,6 +199,13 @@ class FFT:
                     self.__harmonics_indexes[index] = value
         else:
             raise ValueError("Data must be a 1D list of numbers")
+
+    def __extract_noise(self, epsilon=5):
+        noise = []
+        for x in range(int(self.__data_size/2)):
+            if self.__amplitudes[x] <= epsilon:
+                noise.append(self.__amplitudes[x])
+        return noise
 
     def __threshold_list(self, input_list, epsilon=0.0005) -> list:
         """If list values are lower than epsilon, set them to 0"""
