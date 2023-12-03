@@ -16,6 +16,8 @@ class FFT:
         self.__data_size = 0
         self.__dft_op_counter = 0
         self.__fft_op_counter = 0
+        self.__slope = 0
+        self.__intercept = 0
 
     def run(self):
 
@@ -52,9 +54,10 @@ class FFT:
         print(f"Noise: \n{self.__noise_values}")
 
         x_data = int(self.__data_size/2 - len(self.__harmonics_indexes.keys()))
-        slope, intercept = np.polyfit(range(x_data), self.__noise_values, 1)
+        self.__slope, self.__intercept = np.polyfit(range(x_data), self.__noise_values, 1)
 
-        print(f"Slope: \n{slope}")
+        print(f"Slope: \n{self.__slope}")
+        print(f"Intercept: \n{self.__intercept}")
 
         # print(f"DFT operations: {self.__dft_op_counter}")
         # print(f"FFT operations: {self.__fft_op_counter}")
@@ -62,6 +65,7 @@ class FFT:
         # Plotting
         self.__plot_signal(self.__data)
         self.__plot_amplitudes()
+        self.__plot_noise()
 
         # Inverse
         signal_dft_inverse = self.__idft(self.__dft_frequencies)
@@ -227,6 +231,9 @@ class FFT:
         """Rounds the contents of a list to two decimal points."""
         return [np.round(num, 2) for num in input_list]
 
+    def __lin_fun(self, x):
+        return self.__slope * x + self.__intercept
+
     # TODO: Remove all the figure titles
     # TODO: Rename all the figure labels to Polish
     def __plot_amplitudes(self):
@@ -271,6 +278,26 @@ class FFT:
 
         plt.grid(True)
         plt.show()
+
+    def __plot_noise(self):
+        noise_values_num = range(len(self.__noise_values))
+
+        plt.figure(figsize=(7.5, 5))
+
+        plt.scatter(noise_values_num, self.__noise_values, s=15)
+        plt.plot(noise_values_num, [self.__lin_fun(x) for x in noise_values_num], color="orange")
+        plt.title("Noise amplitudes")
+        plt.xlabel("Sample number", fontsize=12)
+        plt.ylabel("Amplitude", fontsize=12)
+        plt.xticks(fontsize=12)
+        plt.yticks(fontsize=12)
+
+        # Internal margins
+        plt.subplots_adjust(left=0.12, right=0.95, top=0.95, bottom=0.12)
+
+        plt.grid(True)
+        plt.show()
+
 
 
 def main():
