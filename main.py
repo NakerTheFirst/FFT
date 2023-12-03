@@ -21,16 +21,13 @@ class FFT:
 
     def run(self):
 
-        # TODO: Wrap output to be saved in dane.out file in the final programme
         # with self.__redirect_output_to_file("dane.out"):
 
         # Remains here for the use of testing
         self.__scrape_data()
+        # self.__scrape_data_final()
         self.__data = self.__data_noisy
         self.__data_size = np.size(self.__data)
-
-        # TODO: Uncomment before handing in the final programme
-        # self.__scrape_data_final()
 
         # Perform the transformations and round the output
         self.__dft_frequencies = self.__threshold_list(self.__dft(self.__data))
@@ -43,24 +40,14 @@ class FFT:
 
         # Save FFT harmonics
         self.__extract_significant_values(self.__amplitudes)
-        print(f"Harmonics: \n{self.__harmonics_indexes}")
-
-        print(f"Post-DFT frequencies: \n{self.__dft_frequencies}")
-        print(f"Amplitudes: \n{self.__amplitudes}")
 
         # Extract the noise
         self.__noise_values = self.__extract_noise()
 
-        print(f"Noise: \n{self.__noise_values}")
-
         x_data = int(self.__data_size/2 - len(self.__harmonics_indexes.keys()))
         self.__slope, self.__intercept = np.polyfit(range(x_data), self.__noise_values, 1)
 
-        print(f"Slope: \n{self.__slope}")
-        print(f"Intercept: \n{self.__intercept}")
-
-        # print(f"DFT operations: {self.__dft_op_counter}")
-        # print(f"FFT operations: {self.__fft_op_counter}")
+        self.__print_result_data()
 
         # Plotting
         self.__plot_signal(self.__data)
@@ -234,6 +221,16 @@ class FFT:
     def __lin_fun(self, x):
         return self.__slope * x + self.__intercept
 
+    def __print_result_data(self):
+        print(f"Number of dominant DFT operations: {self.__dft_op_counter}")
+        print(f"Number of dominant FFT operations: {self.__fft_op_counter}")
+        print(f"Post-FFT frequencies: \n{self.__fft_frequencies}")
+        print(f"Harmonics: \n{self.__harmonics_indexes}")
+        print(f"Amplitudes: \n{self.__amplitudes}")
+        print(f"Noise: \n{self.__noise_values}")
+        print(f"Slope: \n{self.__slope}")
+        print(f"Intercept: \n{self.__intercept}")
+
     # TODO: Remove all the figure titles
     # TODO: Rename all the figure labels to Polish
     def __plot_amplitudes(self):
@@ -251,15 +248,6 @@ class FFT:
         # Internal margins
         plt.subplots_adjust(left=0.12, right=0.95, top=0.95, bottom=0.12)
 
-        plt.grid(True)
-        plt.show()
-
-    # TODO: This doesn't work, unsure what to do - move on, get back later
-    def plot_magnitude_spectrum(self):
-        plt.scatter(self.__fft_frequencies, self.__amplitudes)
-        plt.title("FFT Magnitude Spectrum")
-        plt.xlabel("Frequencies")
-        plt.ylabel("Amplitudes")
         plt.grid(True)
         plt.show()
 
@@ -297,7 +285,6 @@ class FFT:
 
         plt.grid(True)
         plt.show()
-
 
 
 def main():
