@@ -23,9 +23,8 @@ class FFT:
 
         # with self.__redirect_output_to_file("dane.out"):
 
-        # Remains here for the use of testing
-        self.__scrape_data()
         # self.__scrape_data_final()
+        self.__scrape_data()
         self.__data = self.__data_noisy
         self.__data_size = np.size(self.__data)
 
@@ -35,30 +34,22 @@ class FFT:
         self.__dft_frequencies = self.__round_list_contents(self.__dft_frequencies)
         self.__fft_frequencies = self.__round_list_contents(self.__fft_frequencies)
 
+        # Inverse transformations
+        signal_dft_inverse = self.__idft(self.__dft_frequencies)
+        signal_fft_inverse = self.__idft(self.__fft_frequencies)
+
         self.__calc_amplitudes()
         self.__amplitudes = self.__round_list_contents(self.__amplitudes)
-
-        # Save FFT harmonics
-        self.__extract_significant_values(self.__amplitudes)
-
-        # Extract the noise
+        self.__extract_harmonics(self.__amplitudes)
         self.__noise_values = self.__extract_noise()
+        self.__fit_line_to_noise()
 
-        x_data = int(self.__data_size/2 - len(self.__harmonics_indexes.keys()))
-        self.__slope, self.__intercept = np.polyfit(range(x_data), self.__noise_values, 1)
-
-        self.__print_result_data()
+        self.__print_output_data()
 
         # Plotting
         self.__plot_signal(self.__data)
         self.__plot_amplitudes()
         self.__plot_noise()
-
-        # Inverse
-        signal_dft_inverse = self.__idft(self.__dft_frequencies)
-        signal_fft_inverse = self.__idft(self.__fft_frequencies)
-
-        # Plot inverted signals to compare to the initial ones
         # self.__plot_signal(signal_dft_inverse, "Post IDFT signal")
         # self.__plot_signal(signal_fft_inverse, "Post IFFT signal")
 
@@ -182,7 +173,7 @@ class FFT:
             self.__amplitudes.append(amplitude)
 
     # TODO: Add 2D data handling
-    def __extract_significant_values(self, data, threshold=5):
+    def __extract_harmonics(self, data, threshold=5):
         # If data is a 1D list
         if all(isinstance(i, (int, float, complex, np.int32, np.float64)) for i in data):
             for index, value in enumerate(data):
@@ -218,21 +209,31 @@ class FFT:
         """Rounds the contents of a list to two decimal points."""
         return [np.round(num, 2) for num in input_list]
 
-    def __lin_fun(self, x):
-        return self.__slope * x + self.__intercept
+    def __fit_line_to_noise(self):
+        N = len(self.__noise_values)
+        psd_values = [(abs(x) ** 2) / N for x in self.__noise_values]
 
-    def __print_result_data(self):
-        print(f"Number of dominant DFT operations: {self.__dft_op_counter}")
-        print(f"Number of dominant FFT operations: {self.__fft_op_counter}")
-        print(f"Post-FFT frequencies: \n{self.__fft_frequencies}")
+        # Convert PSD to decibels
+        psd_dB = [10 * np.log10(psd) if psd > 0 else 0 for psd in psd_values]
+
+        # Log-frequency scale for fitting
+        log_freq = np.log10(np.arange(1, N + 1))
+
+        self.__slope, self.__intercept = np.polyfit(log_freq, psd_dB, 1)
+
+        # Create a function based on the fit to calculate the line values
+        self.__lin_fun = lambda f: self.__slope * f + self.__intercept
+
+    def __print_output_data(self):
+        # print(f"Number of dominant DFT operations: {self.__dft_op_counter}")
+        # print(f"Number of dominant FFT operations: {self.__fft_op_counter}")
+        # print(f"Post-FFT frequencies: \n{self.__fft_frequencies}")
         print(f"Harmonics: \n{self.__harmonics_indexes}")
         print(f"Amplitudes: \n{self.__amplitudes}")
         print(f"Noise: \n{self.__noise_values}")
-        print(f"Slope: \n{self.__slope}")
-        print(f"Intercept: \n{self.__intercept}")
+        # print(f"Slope: \n{self.__slope}")
+        # print(f"Intercept: \n{self.__intercept}")
 
-    # TODO: Remove all the figure titles
-    # TODO: Rename all the figure labels to Polish
     def __plot_amplitudes(self):
         sample_num = range(len(self.__amplitudes))
 
@@ -268,23 +269,33 @@ class FFT:
         plt.show()
 
     def __plot_noise(self):
-        noise_values_num = range(len(self.__noise_values))
+        N = len(self.__noise_values) * 2
+        psd_values = [(abs(x) ** 2) / N for x in self.__noise_values]
+        psd_dB = [10 * np.log10(psd) if psd > 0 else 0 for psd in psd_values]
+
+        # Create a frequency array that matches the length of psd_dB
+        freq = np.arange(1, N // 2 + 1)
 
         plt.figure(figsize=(7.5, 5))
 
-        plt.scatter(noise_values_num, self.__noise_values, s=15)
-        plt.plot(noise_values_num, [self.__lin_fun(x) for x in noise_values_num], color="orange")
-        plt.title("Noise amplitudes")
-        plt.xlabel("Sample number", fontsize=12)
-        plt.ylabel("Amplitude", fontsize=12)
+        plt.semilogx(freq, psd_dB, label="WGM Szumu")
+
+        # Generate the fit line values
+        fit_line = [self.__lin_fun(np.log10(f)) for f in freq]
+        plt.semilogx(freq, fit_line, color="orange", label="Linia dopasowania")
+
+        plt.xlabel("Częstotliwość", fontsize=12)
+        plt.ylabel("Widmowa Gęstość Mocy (dB)", fontsize=12)
         plt.xticks(fontsize=12)
         plt.yticks(fontsize=12)
 
-        # Internal margins
         plt.subplots_adjust(left=0.12, right=0.95, top=0.95, bottom=0.12)
-
         plt.grid(True)
+        plt.legend()
         plt.show()
+
+    # TODO: Remove all the figure titles
+    # TODO: Rename all the figure labels to Polish
 
 
 def main():
