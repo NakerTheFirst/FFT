@@ -61,7 +61,8 @@ class FFT:
             self.__amplitudes_centred = np.fft.fftshift(self.__amplitudes)
             self.__amplitudes_log = np.log1p(self.__amplitudes_centred)
 
-            print(self.__fft_frequencies)
+            # Plotting
+            self.__plot_2d_amplitudes()
 
         self.__print_output_data()
 
@@ -311,6 +312,14 @@ class FFT:
         plt.subplots_adjust(left=0.12, right=0.95, top=0.95, bottom=0.12)
         plt.grid(True)
         plt.legend()
+        plt.show()
+
+    def __plot_2d_amplitudes(self):
+        plt.imshow(self.__amplitudes_log, cmap='hot', extent=(-1, 1, -1, 1))
+        plt.colorbar()
+        plt.title("2D FFT Magnitude Spectrum")
+        plt.xlabel("Frequency X")
+        plt.ylabel("Frequency Y")
         plt.show()
 
     # TODO: Remove all the figure titles
