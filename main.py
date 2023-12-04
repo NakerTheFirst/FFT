@@ -10,9 +10,12 @@ class FFT:
         self.__data_2d = []
         self.__dft_frequencies = []
         self.__amplitudes = []
+        self.__amplitudes_log = None
         self.__fft_frequencies = []
         self.__harmonics_indexes = {}
         self.__noise_values = []
+        self.__amplitudes_centred = None
+        self.__dimensionality = 0
         self.__data_size = 0
         self.__dft_op_counter = 0
         self.__fft_op_counter = 0
@@ -22,36 +25,45 @@ class FFT:
     def run(self):
 
         # with self.__redirect_output_to_file("dane.out"):
-
         # self.__scrape_data_final()
         self.__scrape_data()
-        self.__data = self.__data_noisy
-        self.__data_size = np.size(self.__data)
+        self.__dimensionality = 2
 
-        # Perform the transformations and round the output
-        self.__dft_frequencies = self.__threshold_list(self.__dft(self.__data))
-        self.__fft_frequencies = self.__threshold_list(self.__fft(self.__data))
-        self.__dft_frequencies = self.__round_list_contents(self.__dft_frequencies)
-        self.__fft_frequencies = self.__round_list_contents(self.__fft_frequencies)
+        if self.__dimensionality == 1:
+            # Perform the transformations and round the output
+            self.__dft_frequencies = self.__threshold_list(self.__dft(self.__data))
+            self.__fft_frequencies = self.__threshold_list(self.__fft(self.__data))
+            self.__dft_frequencies = self.__round_list_contents(self.__dft_frequencies)
+            self.__fft_frequencies = self.__round_list_contents(self.__fft_frequencies)
 
-        # Inverse transformations
-        signal_dft_inverse = self.__idft(self.__dft_frequencies)
-        signal_fft_inverse = self.__idft(self.__fft_frequencies)
+            # Inverse transformations
+            signal_dft_inverse = self.__idft(self.__dft_frequencies)
+            signal_fft_inverse = self.__idft(self.__fft_frequencies)
 
-        self.__calc_amplitudes()
-        self.__amplitudes = self.__round_list_contents(self.__amplitudes)
-        self.__extract_harmonics(self.__amplitudes)
-        self.__noise_values = self.__extract_noise()
-        self.__fit_line_to_noise()
+            self.__data_size = np.size(self.__data)
+            self.__calc_amplitudes()
+            self.__amplitudes = self.__round_list_contents(self.__amplitudes)
+            self.__extract_harmonics(self.__amplitudes)
+            self.__noise_values = self.__extract_noise()
+            self.__fit_line_to_noise()
+
+            # Plotting
+            self.__plot_signal(self.__data)
+            self.__plot_amplitudes()
+            self.__plot_noise()
+            self.__plot_signal(signal_dft_inverse, "Post IDFT signal")
+            self.__plot_signal(signal_fft_inverse, "Post IFFT signal")
+
+        if self.__dimensionality == 2:
+            self.__fft_frequencies = self.__threshold_list(self.__fft(self.__data))
+            self.__fft_frequencies = self.__round_list_contents(self.__fft_frequencies)
+            self.__amplitudes = np.abs(self.__fft_frequencies)
+            self.__amplitudes_centred = np.fft.fftshift(self.__amplitudes)
+            self.__amplitudes_log = np.log1p(self.__amplitudes_centred)
+
+            print(self.__fft_frequencies)
 
         self.__print_output_data()
-
-        # Plotting
-        self.__plot_signal(self.__data)
-        self.__plot_amplitudes()
-        self.__plot_noise()
-        # self.__plot_signal(signal_dft_inverse, "Post IDFT signal")
-        # self.__plot_signal(signal_fft_inverse, "Post IFFT signal")
 
     def __scrape_data(self):
         files = ["dane_02.in", "dane_02_a.in", "dane2_02.in"]
@@ -72,23 +84,24 @@ class FFT:
                     data_list.append(float(line))
                 except ValueError:
                     print(f"Could not convert {line} to float")
+        self.__data = self.__data_2d
 
     def __scrape_data_final(self):
-        # Read the dimension
-        dimensionality = int(input().strip())
+        self.__dimensionality = int(input().strip())
 
         # Read the number of elements
         dimensions = list(map(int, input().strip().split()))
 
         # Initialize the data container
-        if dimensionality == 1:
+        if self.__dimensionality == 1:
             N = dimensions[0]
             self.__data = [float(input().strip()) for _ in range(N)]
-        elif dimensionality == 2:
+        elif self.__dimensionality == 2:
             N, M = dimensions
-            self.__data_2d = [[float(num) for num in input().strip().split()] for _ in range(N)]
+            self.__data = [[float(num) for num in input().strip().split()] for _ in range(N)]
         else:
             raise ValueError("Dimensionality must be 1 or 2")
+        print(f"self.__dimensionality: {self.__dimensionality}, self.__data: {self.__data}")
 
     def __redirect_output_to_file(self, filename):
         class OutputRedirector:
@@ -115,25 +128,32 @@ class FFT:
         return X
 
     def __fft(self, x):
-        N = len(x)
-        if N <= 1:
-            return x
 
-        # Even/odd element splitting
-        even = self.__fft(x[0::2])
-        odd = self.__fft(x[1::2])
+        if self.__dimensionality == 1:
+            N = len(x)
+            if N <= 1:
+                return x
 
-        # Combine
-        combined = [0] * N
-        for k in range(N // 2):
-            twiddle_factor = np.exp(-2j * np.pi * k / N) * odd[k]
-            combined[k] = even[k] + twiddle_factor
-            combined[k + N // 2] = even[k] - twiddle_factor
+            # Even/odd element splitting
+            even = self.__fft(x[0::2])
+            odd = self.__fft(x[1::2])
 
-            # Count 2 operations (1 multiplication, 1 addition)
-            self.__fft_op_counter += 2
+            # Combine
+            combined = [0] * N
+            for k in range(N // 2):
+                twiddle_factor = np.exp(-2j * np.pi * k / N) * odd[k]
+                combined[k] = even[k] + twiddle_factor
+                combined[k + N // 2] = even[k] - twiddle_factor
 
-        return combined
+                # Count 2 operations (1 multiplication, 1 addition)
+                self.__fft_op_counter += 2
+            return combined
+
+        elif self.__dimensionality == 2:
+            return np.fft.fft2(x)
+
+        else:
+            raise ValueError("Wrong dimension!")
 
     def __idft(self, x):
         N = len(x)
@@ -172,7 +192,6 @@ class FFT:
             amplitude = np.abs(self.__fft_frequencies[x])
             self.__amplitudes.append(amplitude)
 
-    # TODO: Add 2D data handling
     def __extract_harmonics(self, data, threshold=5):
         # If data is a 1D list
         if all(isinstance(i, (int, float, complex, np.int32, np.float64)) for i in data):
@@ -199,7 +218,7 @@ class FFT:
             return [threshold_value(x) for x in input_list]
 
         # 2D list
-        elif all(isinstance(row, list) for row in input_list):
+        elif all(isinstance(row, np.ndarray) for row in input_list):
             return [[threshold_value(x) for x in row] for row in input_list]
 
         else:
@@ -284,7 +303,7 @@ class FFT:
         fit_line = [self.__lin_fun(np.log10(f)) for f in freq]
         plt.semilogx(freq, fit_line, color="orange", label="Linia dopasowania")
 
-        plt.xlabel("Częstotliwość", fontsize=12)
+        plt.xlabel("Znormalizowana częstotliwość", fontsize=12)
         plt.ylabel("Widmowa Gęstość Mocy (dB)", fontsize=12)
         plt.xticks(fontsize=12)
         plt.yticks(fontsize=12)
