@@ -191,7 +191,7 @@ class FFT:
             self.__amplitudes.append(amplitude)
 
     def __extract_harmonics(self, data, threshold=5):
-        if all(isinstance(i, (int, float, complex, np.int32, np.float64)) for i in data):
+        if all(isinstance(i, (int, float, complex, np.int32, np.float64, np.int64)) for i in data):
             for index, value in enumerate(data):
                 if abs(value) > threshold and abs(value) not in self.__harmonics_indexes.values():
                     self.__harmonics_indexes[index] = value
