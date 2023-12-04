@@ -9,11 +9,11 @@ class FFT:
         self.__data_noisy = []
         self.__data_2d = []
         self.__dft_frequencies = []
-        self.__amplitudes = []
-        self.__amplitudes_log = None
         self.__fft_frequencies = []
         self.__harmonics_indexes = {}
         self.__noise_values = []
+        self.__amplitudes = []
+        self.__amplitudes_log = None
         self.__amplitudes_centred = None
         self.__dimensionality = 0
         self.__data_size = 0
@@ -25,9 +25,7 @@ class FFT:
     def run(self):
 
         # with self.__redirect_output_to_file("dane.out"):
-        # self.__scrape_data_final()
-        self.__scrape_data()
-        self.__dimensionality = 2
+        self.__scrape_data_final()
 
         if self.__dimensionality == 1:
             # Perform the transformations and round the output
@@ -51,8 +49,8 @@ class FFT:
             self.__plot_signal(self.__data)
             self.__plot_amplitudes()
             self.__plot_noise()
-            self.__plot_signal(signal_dft_inverse, "Post IDFT signal")
-            self.__plot_signal(signal_fft_inverse, "Post IFFT signal")
+            self.__plot_signal(signal_dft_inverse)
+            self.__plot_signal(signal_fft_inverse)
 
         if self.__dimensionality == 2:
             self.__fft_frequencies = self.__threshold_list(self.__fft(self.__data))
@@ -62,6 +60,7 @@ class FFT:
             self.__amplitudes_log = np.log1p(self.__amplitudes_centred)
 
             # Plotting
+            self.__plot_2d_data()
             self.__plot_2d_amplitudes()
 
         self.__print_output_data()
@@ -85,7 +84,6 @@ class FFT:
                     data_list.append(float(line))
                 except ValueError:
                     print(f"Could not convert {line} to float")
-        self.__data = self.__data_2d
 
     def __scrape_data_final(self):
         self.__dimensionality = int(input().strip())
@@ -102,7 +100,6 @@ class FFT:
             self.__data = [[float(num) for num in input().strip().split()] for _ in range(N)]
         else:
             raise ValueError("Dimensionality must be 1 or 2")
-        print(f"self.__dimensionality: {self.__dimensionality}, self.__data: {self.__data}")
 
     def __redirect_output_to_file(self, filename):
         class OutputRedirector:
@@ -183,7 +180,7 @@ class FFT:
             combined[k] = even[k] + twiddle_factor
             combined[k + N // 2] = even[k] - twiddle_factor
 
-        # Normalize the results by the number of samples
+        # Normalise the results by the number of samples
         combined = [elem / N for elem in combined]
 
         return combined
@@ -194,7 +191,6 @@ class FFT:
             self.__amplitudes.append(amplitude)
 
     def __extract_harmonics(self, data, threshold=5):
-        # If data is a 1D list
         if all(isinstance(i, (int, float, complex, np.int32, np.float64)) for i in data):
             for index, value in enumerate(data):
                 if abs(value) > threshold and abs(value) not in self.__harmonics_indexes.values():
@@ -226,7 +222,7 @@ class FFT:
             raise ValueError("Input must be a 1D or 2D list of numbers")
 
     def __round_list_contents(self, input_list):
-        """Rounds the contents of a list to two decimal points."""
+        """Rounds the contents of a list to two decimal points"""
         return [np.round(num, 2) for num in input_list]
 
     def __fit_line_to_noise(self):
@@ -245,46 +241,44 @@ class FFT:
         self.__lin_fun = lambda f: self.__slope * f + self.__intercept
 
     def __print_output_data(self):
-        # print(f"Number of dominant DFT operations: {self.__dft_op_counter}")
-        # print(f"Number of dominant FFT operations: {self.__fft_op_counter}")
-        # print(f"Post-FFT frequencies: \n{self.__fft_frequencies}")
-        print(f"Harmonics: \n{self.__harmonics_indexes}")
-        print(f"Amplitudes: \n{self.__amplitudes}")
-        print(f"Noise: \n{self.__noise_values}")
-        # print(f"Slope: \n{self.__slope}")
-        # print(f"Intercept: \n{self.__intercept}")
+        if self.__dimensionality == 1:
+            print(f"Liczba operacji dominujących w DFT: {self.__dft_op_counter}")
+            print(f"Liczba operacji dominujących w FFT: {self.__fft_op_counter}")
+            print(f"Częstotliwości po FFT: \n{self.__fft_frequencies}")
+            print(f"Harmoniczne: \n{self.__harmonics_indexes}")
+            print(f"Amplitudy: \n{self.__amplitudes}")
+            print(f"Szum: \n{self.__noise_values}")
+            print(f"Współczynnik kierunkowy prostej dopasowującej: \n{self.__slope}")
+            print(f"Punkt przecięcia z osią oY: \n{self.__intercept}")
+
+        if self.__dimensionality == 2:
+            print(f"Częstotliwości po FFT: \n{self.__fft_frequencies}")
+            print(f"Amplitudy: \n{self.__amplitudes}")
 
     def __plot_amplitudes(self):
         sample_num = range(len(self.__amplitudes))
 
         plt.figure(figsize=(7.5, 5))
-
         plt.scatter(sample_num, self.__amplitudes, s=15)
-        plt.title("FFT Amplitudes")
-        plt.xlabel("Sample number", fontsize=12)
-        plt.ylabel("Amplitudes", fontsize=12)
+        plt.xlabel("Numer próbki", fontsize=12)
+        plt.ylabel("Amplituda", fontsize=12)
         plt.xticks(fontsize=12)
         plt.yticks(fontsize=12)
 
-        # Internal margins
         plt.subplots_adjust(left=0.12, right=0.95, top=0.95, bottom=0.12)
-
         plt.grid(True)
         plt.show()
 
-    def __plot_signal(self, signal, title="Discretised Signal in Time Domain"):
+    def __plot_signal(self, signal):
         plt.figure(figsize=(7.5, 5))
 
         plt.scatter(range(len(signal)), signal, s=15)
-        plt.title(title)
-        plt.xlabel("Sample number", fontsize=12)
-        plt.ylabel("Value", fontsize=12)
+        plt.xlabel("Numer próbki", fontsize=12)
+        plt.ylabel("Amplituda", fontsize=12)
         plt.xticks(fontsize=12)
         plt.yticks(fontsize=12)
 
-        # Internal margins
         plt.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.12)
-
         plt.grid(True)
         plt.show()
 
@@ -317,13 +311,20 @@ class FFT:
     def __plot_2d_amplitudes(self):
         plt.imshow(self.__amplitudes_log, cmap='hot', extent=(-1, 1, -1, 1))
         plt.colorbar()
-        plt.title("2D FFT Magnitude Spectrum")
-        plt.xlabel("Frequency X")
-        plt.ylabel("Frequency Y")
+        plt.xlabel("Częstotliwość X", fontsize=11)
+        plt.ylabel("Częstotliwość Y", fontsize=11)
+        plt.subplots_adjust(left=0.12, right=0.95, top=0.95, bottom=0.12)
         plt.show()
 
-    # TODO: Remove all the figure titles
-    # TODO: Rename all the figure labels to Polish
+    def __plot_2d_data(self):
+        plt.imshow(self.__data, cmap='hot', aspect='auto')
+        plt.colorbar()
+        plt.xlabel("Wartość x", fontsize=12)
+        plt.ylabel("Wartość y", fontsize=12)
+        plt.xticks(fontsize=12)
+        plt.yticks(fontsize=12)
+        plt.subplots_adjust(left=0.12, right=0.95, top=0.95, bottom=0.12)
+        plt.show()
 
 
 def main():
