@@ -24,46 +24,46 @@ class FFT:
 
     def run(self):
 
-        # with self.__redirect_output_to_file("dane.out"):
-        self.__scrape_data_final()
+        with self.__redirect_output_to_file("dane.out"):
+            self.__scrape_data_final()
 
-        if self.__dimensionality == 1:
-            # Perform the transformations and round the output
-            self.__dft_frequencies = self.__threshold_list(self.__dft(self.__data))
-            self.__fft_frequencies = self.__threshold_list(self.__fft(self.__data))
-            self.__dft_frequencies = self.__round_list_contents(self.__dft_frequencies)
-            self.__fft_frequencies = self.__round_list_contents(self.__fft_frequencies)
+            if self.__dimensionality == 1:
+                # Perform the transformations and round the output
+                self.__dft_frequencies = self.__threshold_list(self.__dft(self.__data))
+                self.__fft_frequencies = self.__threshold_list(self.__fft(self.__data))
+                self.__dft_frequencies = self.__round_list_contents(self.__dft_frequencies)
+                self.__fft_frequencies = self.__round_list_contents(self.__fft_frequencies)
 
-            # Inverse transformations
-            signal_dft_inverse = self.__idft(self.__dft_frequencies)
-            signal_fft_inverse = self.__idft(self.__fft_frequencies)
+                # Inverse transformations
+                signal_dft_inverse = self.__idft(self.__dft_frequencies)
+                signal_fft_inverse = self.__idft(self.__fft_frequencies)
 
-            self.__data_size = np.size(self.__data)
-            self.__calc_amplitudes()
-            self.__amplitudes = self.__round_list_contents(self.__amplitudes)
-            self.__extract_harmonics(self.__amplitudes)
-            self.__noise_values = self.__extract_noise()
-            self.__fit_line_to_noise()
+                self.__data_size = np.size(self.__data)
+                self.__calc_amplitudes()
+                self.__amplitudes = self.__round_list_contents(self.__amplitudes)
+                self.__extract_harmonics(self.__amplitudes)
+                self.__noise_values = self.__extract_noise()
+                self.__fit_line_to_noise()
 
-            # Plotting
-            self.__plot_signal(self.__data)
-            self.__plot_amplitudes()
-            self.__plot_noise()
-            self.__plot_signal(signal_dft_inverse)
-            self.__plot_signal(signal_fft_inverse)
+                # Plotting
+                self.__plot_signal(self.__data)
+                self.__plot_amplitudes()
+                self.__plot_noise()
+                self.__plot_signal(signal_dft_inverse)
+                self.__plot_signal(signal_fft_inverse)
 
-        if self.__dimensionality == 2:
-            self.__fft_frequencies = self.__threshold_list(self.__fft(self.__data))
-            self.__fft_frequencies = self.__round_list_contents(self.__fft_frequencies)
-            self.__amplitudes = np.abs(self.__fft_frequencies)
-            self.__amplitudes_centred = np.fft.fftshift(self.__amplitudes)
-            self.__amplitudes_log = np.log1p(self.__amplitudes_centred)
+            if self.__dimensionality == 2:
+                self.__fft_frequencies = self.__threshold_list(self.__fft(self.__data))
+                self.__fft_frequencies = self.__round_list_contents(self.__fft_frequencies)
+                self.__amplitudes = np.abs(self.__fft_frequencies)
+                self.__amplitudes_centred = np.fft.fftshift(self.__amplitudes)
+                self.__amplitudes_log = np.log1p(self.__amplitudes_centred)
 
-            # Plotting
-            self.__plot_2d_data()
-            self.__plot_2d_amplitudes()
+                # Plotting
+                self.__plot_2d_data()
+                self.__plot_2d_amplitudes()
 
-        self.__print_output_data()
+            self.__print_output_data()
 
     def __scrape_data(self):
         files = ["dane_02.in", "dane_02_a.in", "dane2_02.in"]
